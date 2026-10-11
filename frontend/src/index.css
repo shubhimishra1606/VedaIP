@@ -1,0 +1,8 @@
+@tailwind base;@tailwind components;@tailwind utilities;
+body{@apply bg-bg text-ink font-sans antialiased}
+.card{@apply bg-white border border-line rounded-2xl p-4 shadow-soft}
+.btn{@apply px-5 py-2.5 rounded-xl border border-line bg-white text-sm font-medium hover:border-gold hover:shadow-soft transition}
+.btn-p{@apply bg-ac text-white border-ac hover:border-ac hover:opacity-90 hover:shadow-lift}
+.chip{@apply inline-block mr-1 my-0.5 px-2.5 py-0.5 rounded-full border border-ac/30 bg-acs text-ac text-xs font-medium cursor-pointer hover:bg-ac hover:text-white transition}
+.hero-bg{background:radial-gradient(60% 50% at 85% 0%,rgba(184,146,74,.18),transparent 70%),radial-gradient(50% 50% at 0% 10%,rgba(11,79,74,.12),transparent 70%)}
+.dots{background-image:radial-gradient(rgba(19,32,46,.08) 1px,transparent 1px);background-size:22px 22px}

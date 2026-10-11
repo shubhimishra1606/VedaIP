@@ -1,0 +1,7 @@
+anthropic 
+pymupdf 
+chromadb 
+rank-bm25 
+fastapi 
+uvicorn 
+python-dotenv
