@@ -4,12 +4,16 @@ import { motion } from "framer-motion";
 import { askQuestion } from "../services/chatService";
 import { sources } from "../data/mockSources";
 import Disclaimer from "./Disclaimer";
+
 const PROMPTS = ["Can I patent this Ayurvedic formulation?", "Does my product require ABS compliance?", "Is this formulation considered a classical medicine?", "What IP protection is available for my herbal product?", "What are the requirements for exporting this product?", "How does the WIPO GRATK Treaty affect traditional knowledge?"];
 const H = ({ children }) => <h4 className="text-xs uppercase tracking-wider text-mut">{children}</h4>;
+
 function AssistantChat({ jur, lang, initial, onSource }) {
+
   const [msgs, setMsgs] = useState([]);
   const [v, setV] = useState("");
   const end = useRef(null);
+
   const send = async (q) => {
     if (!q.trim()) return;
     setV("");
@@ -17,19 +21,32 @@ function AssistantChat({ jur, lang, initial, onSource }) {
     const a = await askQuestion(q, jur, lang);
     setMsgs((m) => m.map((x, i) => i === m.length - 1 ? { q, a } : x));
   };
+
   useEffect(() => {
     if (initial) send(initial);
   }, []);
+
   useEffect(() => {
     end.current?.scrollIntoView({ behavior: "smooth" });
   }, [msgs]);
+
   const chip = (id) => <button key={id} className="chip" onClick={() => onSource(id)}>{sources.find((s) => s.id === id)?.title}</button>;
+
   return <div className="pb-44">
-    {!msgs.length && <div className="text-center pt-10"><h1 className="font-display text-4xl font-semibold">How can VedaIP help?</h1><p className="text-mut mt-2">Every answer is traced to a source.</p>
-      <div className="grid sm:grid-cols-2 gap-3 mt-8 text-left">{PROMPTS.map((p) => <button key={p} className="card hover:border-gold transition" onClick={() => send(p)}>{p}</button>)}</div></div>}
+
+    {!msgs.length && <div className="text-center pt-10">
+      <h1 className="font-display text-4xl font-semibold">How can VedaIP help?</h1>
+      <p className="text-mut mt-2">Every answer is traced to a source.</p>
+      <div className="grid sm:grid-cols-2 gap-3 mt-8 text-left">
+        {PROMPTS.map((p) => <button key={p} className="card hover:border-gold transition" onClick={() => send(p)}>{p}</button>)}
+      </div>
+    </div>}
+
     {msgs.map((m, i) => <div key={i}><div className="ml-auto mt-6 w-fit max-w-[85%] bg-acs rounded-2xl px-4 py-2">{m.q}</div>
       {m.loading ? <div className="card mt-4 text-mut animate-pulse">Retrieving sources…</div> : m.a ? <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} className="card mt-4 space-y-3">
-        <div className="text-xs flex gap-2"><span className="border border-line rounded-full px-2">{jur === "IN" ? "\u{1F1EE}\u{1F1F3} India" : "\u{1F310} International"}</span><span className="border border-line rounded-full px-2">Answer language: {lang}</span></div>
+        <div className="text-xs flex gap-2">
+          <span className="border border-line rounded-full px-2">{jur === "IN" ? "\u{1F1EE}\u{1F1F3} India" : "\u{1F310} International"}</span>
+          <span className="border border-line rounded-full px-2">Answer language: {lang}</span></div>
         <section><H>Answer</H><p>{m.a.answer}</p></section>
         <section><H>Why</H><p>{m.a.why}</p></section>
         <section><H>Applicable framework</H>{m.a.framework.map((f) => <span key={f} className="mr-1 text-xs border border-line rounded-full px-2 py-0.5">{f}</span>)}</section>

@@ -1,9 +1,6 @@
 """
 Formulation Classification Engine — Rule-based decision tree.
 
-Ye code LLM use NAHI karta. Ye pure Python logic hai, kyunki
-classification ek factual/legal decision hai, LLM ka "guess" nahi
-hona chahiye.
 """
 
 CATEGORIES = {

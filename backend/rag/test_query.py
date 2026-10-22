@@ -27,7 +27,6 @@ def vector_search(query, top_k=3):
 
 
 def hybrid_search(corpus, query, top_k=3):
-    # --- BM25 (keyword) search ---
     tokenized_corpus = [c["text"].lower().split() for c in corpus]
     bm25 = BM25Okapi(tokenized_corpus)
     bm25_scores = bm25.get_scores(query.lower().split())
@@ -35,12 +34,10 @@ def hybrid_search(corpus, query, top_k=3):
     bm25_sections = {corpus[i]["section"] for i in bm25_top_idx}
     print("BM25 ne ye sections diye:", list(bm25_sections))
 
-    # --- Vector (semantic) search ---
     vector_chunks = vector_search(query, top_k=top_k)
     vector_sections = {c["section"] for c in vector_chunks}
     print("Vector search ne ye sections diye:", list(vector_sections))
 
-    # --- Combine karo ---
     combined_sections = bm25_sections | vector_sections
     final_chunks = [c for c in corpus if c["section"] in combined_sections]
     return final_chunks
@@ -51,10 +48,11 @@ def ask_with_citation(query, relevant_chunks):
         [f"[Section {c['section']}]\n{c['text']}" for c in relevant_chunks]
     )
 
-    system_prompt = """Tum ek Ayurveda IP advisor ho. Neeche diye gaye legal
-text ke ALAWA kisi aur jaankari ka use mat karo. Har claim ke saath
-section number zaroor do, jaise [Section 3]. Agar jawab is text me nahi
-hai, to saaf bol do "Mujhe iska reliable source nahi mila," guess mat karo."""
+    system_prompt = """You are an Ayurveda IP advisor. Do not use any
+                       information other than the legal text provided below. Every claim
+                       must include a section number citation, like [Section 3]. If the
+                       answer is not present in this text, clearly state "I could not find
+                       a reliable source for this," do not guess."""
 
     response = client.chat.completions.create(
         model="openai/gpt-oss-120b",
@@ -71,12 +69,12 @@ if __name__ == "__main__":
     corpus = load_corpus()
     print(f"Corpus loaded: {len(corpus)} sections\n")
 
-    query = "Kya classical Ayurvedic formulation ka patent ho sakta hai?"
+    query = "Can a classical Ayurvedic formulation be patented?"
     print(f"Sawaal: {query}\n")
 
     relevant_chunks = hybrid_search(corpus, query)
     print(f"\nFinal combined chunks: {[c['section'] for c in relevant_chunks]}\n")
 
     answer = ask_with_citation(query, relevant_chunks)
-    print("--- JAWAB ---")
+    print("--- RESPONSE ---")
     print(answer)

@@ -17,6 +17,6 @@ markers = [
 for marker in markers:
     idx = full_text.find(marker)
     count = full_text.count(marker)
-    print(f"'{marker}' -> pehli baar mila at: {idx}, total occurrences: {count}")
+    print(f"'{marker}' -> first occurence at: {idx}, total occurrences: {count}")
 
 print(f"\nTotal text length: {len(full_text)}")

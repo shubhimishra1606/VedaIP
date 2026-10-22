@@ -1,11 +1,11 @@
-import fitz  # PyMuPDF
+import fitz  
 import re
 import json
 import os
 
 
 def extract_text_from_pdf(pdf_path: str) -> str:
-    """PDF se pura text nikalta hai"""
+    """extracting text from pdf"""
     doc = fitz.open(pdf_path)
     full_text = ""
     for page in doc:
@@ -14,23 +14,22 @@ def extract_text_from_pdf(pdf_path: str) -> str:
     return full_text
 
 
-def trim_to_actual_law(full_text: str) -> str:
-    """
-    Title page aur Table of Contents ko hata deta hai (shuru se).
-    'BE it enacted' ke baad se asli Act ka body shuru hota hai.
 
-    Phir END se bhi trim karta hai: Schedule/Appendix ko hata deta hai,
-    taaki wo galti se "section" na ban jaaye.
-    """
+def trim_to_actual_law(full_text: str) -> str:
     start_marker = "BE it enacted"
     start_idx = full_text.find(start_marker)
     if start_idx == -1:
-        print("WARNING: 'BE it enacted' nahi mila, shuru se text use kar rahe hain.")
+        print("WARNING: 'BE it enacted' not found, using text from the beginning.")
         start_idx = 0
 
-    schedule_markers = ["THE FIRST SCHEDULE", "THE SCHEDULE", "\nSCHEDULE\n"]
+    end_markers = [
+        "THE FIRST SCHEDULE",
+        "THE SCHEDULE",
+        "\nSCHEDULE\n",
+        "In exercise of the powers conferred",
+    ]
     end_idx = len(full_text)
-    for marker in schedule_markers:
+    for marker in end_markers:
         idx = full_text.find(marker)
         if idx != -1 and idx > start_idx:
             end_idx = min(end_idx, idx)
@@ -39,11 +38,6 @@ def trim_to_actual_law(full_text: str) -> str:
 
 
 def split_into_sections(full_text: str, act_name: str) -> list[dict]:
-    """
-    Text ko 'Section N.' pattern dhundh ke chunks me todta hai.
-    Footnote/amendment-note blocks filter karta hai, aur jab same
-    section number multiple jagah match ho, sabse lamba wala rakhta hai.
-    """
     section_pattern = re.compile(r'\n\s*(\d+[A-Z]?)\.\s+(?=[A-Z])', re.MULTILINE)
     matches = list(section_pattern.finditer(full_text))
 
@@ -91,10 +85,6 @@ def split_into_sections(full_text: str, act_name: str) -> list[dict]:
 
 
 def process_pdf(pdf_path: str, act_name: str, output_name: str):
-    """
-    Ek PDF ko process karke chunks banata hai aur JSON me save karta hai.
-    Isse hum kisi bhi naye Act ke liye reuse kar sakte hain.
-    """
     if not os.path.exists(pdf_path):
         print(f"ERROR: File nahi mili: {pdf_path}")
         return None
@@ -103,18 +93,18 @@ def process_pdf(pdf_path: str, act_name: str, output_name: str):
     print(f"Processing: {act_name}")
     print(f"{'='*50}")
 
-    print("PDF se text nikal rahe hain...")
+    print("extracting text from pdf...")
     text = extract_text_from_pdf(pdf_path)
     print(f"Total characters (raw): {len(text)}")
 
     text = trim_to_actual_law(text)
-    print(f"Total characters (TOC + Schedule hataane ke baad): {len(text)}")
+    print(f"Total characters (TOC + after removing schedule): {len(text)}")
 
-    print("Sections me split kar rahe hain...")
+    print("Splitting into sections...")
     chunks = split_into_sections(text, act_name)
-    print(f"Total unique sections mile: {len(chunks)}")
+    print(f"Total unique sections: {len(chunks)}")
 
-    print("\n--- PEHLE 3 CHUNKS (sample) ---")
+    print("\n--- FIRST 3 CHUNKS (sample) ---")
     for c in chunks[:3]:
         print(f"\n[Section {c['section']}]")
         print(c['text'][:150] + "...")
@@ -123,12 +113,11 @@ def process_pdf(pdf_path: str, act_name: str, output_name: str):
     with open(output_path, "w", encoding="utf-8") as f:
         json.dump(chunks, f, ensure_ascii=False, indent=2)
 
-    print(f"\n✅ Saara data save ho gaya: {output_path}")
+    print(f"\n✅ Data saved: {output_path}")
     return chunks
 
 
 if __name__ == "__main__":
-    # Yahan jitne Acts process karne hain, sabki entry daal do
     documents_to_process = [
         {
             "pdf_path": "corpus/raw_pdfs/patents_act_1970.pdf",
