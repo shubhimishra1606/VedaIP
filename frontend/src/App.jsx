@@ -7,6 +7,8 @@ import AssistantChat from "./components/AssistantChat";
 import ClassificationWizard from "./components/ClassificationWizard";
 import Knowledge from "./components/Knowledge";
 import Disclaimer from "./components/Disclaimer";
+import Login from "./Pages/Login";
+import { getToken, logout } from "./api";
 
 const LANGS = ["English","Hindi","Malayalam","Tamil","Telugu","Kannada","Bengali","Marathi","Gujarati","Punjabi","Odia","Assamese"];
 
@@ -31,11 +33,14 @@ export default function App() {
   const [src, setSrc] = useState(null); 
   const [pre, setPre] = useState(); 
   const [toast, setToast] = useState("");
+  const [authed, setAuthed] = useState(!!getToken());
+
   const changeJur = j => { setJur(j); 
     setToast(j === "IN" ? "Showing India-specific sources and requirements." : "Showing international frameworks and market-access requirements."); 
     setTimeout(() => setToast(""), 2200); 
   };
 
+  if(!authed) return <Login onLoggedIn={() => setAuthed(true)} />;
 
   return <div className="min-h-screen">
     
@@ -49,6 +54,7 @@ export default function App() {
       </nav>
       <div className="flex-1"/><JurisdictionToggle value={jur} onChange={changeJur}/>
       <select value={lang} onChange={e => setLang(e.target.value)} className="border border-line rounded-xl px-2.5 py-1.5 text-sm bg-white" aria-label="Language">{LANGS.map(l => <option key={l}>{l}</option>)}</select>
+      <button onClick={() => { logout(); setAuthed(false); }} className="text-sm text-mut hover:text-ink">Logout</button>
     </header>
 
     <AnimatePresence>{toast && <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="fixed top-20 left-1/2 -translate-x-1/2 z-40 bg-ink text-white text-sm px-4 py-2 rounded-full shadow-lift">{toast}</motion.div>}</AnimatePresence>
